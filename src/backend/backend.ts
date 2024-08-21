@@ -5,28 +5,27 @@ import {
     HttpTransformArgs,
 } from 'azle/canisters/management';
 
-
 export default Server(
     // Server section
     () => {
         const app = express();
         app.use(express.json());
 
-        let phonebook = {
-            'Alice': { 'phone': '123-456-789', 'added': new Date() }
+        let posts = {
+            'First Post': { 'content': 'This is the content of the first post.', 'added': new Date() }
         };
 
-        app.get('/contacts', (_req, res) => {
-            res.json(phonebook);
+        app.get('/posts', (_req, res) => {
+            res.json(posts);
         });
 
-        app.post('/contacts/add', (req, res) => {
-            if (Object.keys(phonebook).includes(req.body.name)) {
-                res.json({ error: 'Name already exists' });
+        app.post('/posts/add', (req, res) => {
+            if (Object.keys(posts).includes(req.body.title)) {
+                res.json({ error: 'Post with this title already exists' });
             } else {
-                const contact = { [req.body.name]: { phone: req.body.phone, added: new Date() } };
-                phonebook = { ...phonebook, ...contact };
-                res.json({ status: 'Ok' });
+                const newPost = { [req.body.title]: { content: req.body.content, added: new Date() } };
+                posts = { ...posts, ...newPost };
+                res.json({ status: 'Post added successfully' });
             }
         });
 
@@ -34,15 +33,15 @@ export default Server(
             res.json({ greeting: `Hello, ${req.query.name}` });
         });
 
-        app.post('/price-oracle', async (req, res) => {
+        app.post('/swapi', async (req, res) => {
             ic.setOutgoingHttpOptions({
                 maxResponseBytes: 20_000n,
                 cycles: 500_000_000_000n, // HTTP outcalls cost cycles. Unused cycles are returned.
                 transformMethodName: 'transform'
             });
 
-            const date = '2024-04-01';
-            const response = await (await fetch(`https://api.coinbase.com/v2/prices/${req.body.pair}/spot?date=${date}`)).json();
+            const id = '1';
+            const response = await (await fetch(`https://swapi.dev/api/${req.body.category}/spot?date=${id}`)).json();
             res.json(response);
         });
 
